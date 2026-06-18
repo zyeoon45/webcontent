@@ -59,6 +59,7 @@
     transition: background-color 0.2s;
   }
   button:hover { background-color: #d420ce; }
+  button:disabled { background-color: #555; color: #999; cursor: not-allowed; }
   
   /* 화면 전환용 */
   .screen { display: none; padding: 30px; max-width: 800px; margin: 0 auto; }
@@ -82,6 +83,7 @@
     position: relative; 
     transition: transform 0.3s ease, z-index 0.3s ease; 
     text-align: center;
+    cursor: pointer;
   }
   
   .card:hover {
@@ -103,11 +105,18 @@
     z-index: 5;
   }
 
+  /* 사진 + 스티커를 겹치기 위한 wrapper */
+  .card-photo-wrapper {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    margin-bottom: 12px;
+  }
+
   .card-photo {
     background-color: #eee;
     width: 100%;
     height: 180px; 
-    margin-bottom: 12px;
     text-align: center;
     box-shadow: inset 0 0 5px rgba(0,0,0,0.2); 
     overflow: hidden; 
@@ -118,6 +127,18 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+  }
+
+  /* 사진 좌측 상단에 겹쳐지는 스티커 박스 */
+  .card-stickers {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    font-size: 20px; 
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 6;
   }
 
   .card-emotion {
@@ -126,10 +147,16 @@
     color: #222;
     margin-top: 5px;
   }
-  .card-stickers {
-    font-size: 22px; 
-    letter-spacing: 6px;
-    margin-top: -5px; 
+  .card-recap-badge {
+    font-size: 11px;
+    color: #FF41F9;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .card-recap-pending {
+    font-size: 11px;
+    color: #999;
+    margin-top: 4px;
   }
 
   .pick-grid {
@@ -197,12 +224,99 @@
     margin-top: 20px;
     box-shadow: 0 10px 30px rgba(255, 65, 249, 0.3);
   }
+  .ticket-locked-box {
+    background-color: #2a2a2a;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    margin-top: 20px;
+    color: #999;
+  }
   #map {
     width: 100%;
     height: 280px;
     margin-top: 25px;
     border-radius: 12px;
     border: 3px solid white;
+  }
+
+  /* --- 상세 페이지 --- */
+  .detail-photo-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .detail-photo-wrapper img {
+    width: 100%;
+    display: block;
+  }
+  .detail-stickers {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 26px;
+    letter-spacing: 3px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  }
+  .detail-emotion-box {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 18px;
+    margin-top: 20px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .detail-emotion-label {
+    font-size: 12px;
+    color: #FF41F9;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .recap-section {
+    margin-top: 35px;
+    border-top: 1px solid #444;
+    padding-top: 25px;
+  }
+  .recap-textarea {
+    width: 95%;
+    padding: 15px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: none;
+    background-color: #eee;
+    color: #111;
+    font-family: 'Pretendard Variable', sans-serif;
+    resize: vertical;
+    min-height: 90px;
+  }
+  .recap-locked-notice {
+    background-color: rgba(255, 65, 249, 0.08);
+    border: 1px solid #555;
+    color: #aaa;
+    padding: 18px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 14px;
+  }
+  .recap-saved-box {
+    background-color: rgba(255, 65, 249, 0.12);
+    border: 1px solid #FF41F9;
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #FF41F9;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
   }
 </style>
 </head>
@@ -230,7 +344,7 @@
 
   <div id="screen-home" class="screen">
     <h3 style="text-align:center; margin-bottom: 5px;">나만의 감정 기록장</h3>
-    <p style="text-align:center; font-size:14px; color:#999; margin-bottom: 30px;">사진 위에 마우스를 올려 아날로그 질감을 느껴보세요.</p>
+    <p style="text-align:center; font-size:14px; color:#999; margin-bottom: 30px;">카드를 클릭하면 상세 기록과 '밤의 감정 변화'를 남길 수 있어요.</p>
     <div id="board" class="grid-container">
       </div>
   </div>
@@ -276,20 +390,27 @@
     <div id="msg-box"></div>
   </div>
 
-  <div id="screen-ticket" class="screen">
-    <div class="ticket-box">
-      <h1 style="font-size: 48px; margin: 10px 0;">10% OFF</h1>
-      <p style="font-size: 16px;">다음 방문 시 이 화면을 제시해주세요.</p>
-      <div style="background:white; color:black; padding:15px; margin-top:20px; font-weight:bold; font-size: 18px; border-radius: 5px;">
-        바코드: RAWR-0824
-      </div>
-      
-      <div style="margin-top: 40px; border-top: 2px dashed rgba(255,255,255,0.5); padding-top: 30px;">
-        <h2>📍 다음 rawr 큐레이션 안내</h2>
-        <p style="font-size: 14px; opacity: 0.9;">변화 기록을 남긴 분들을 위해 준비한 비밀 공간입니다.</p>
-        <div id="map"></div>
-      </div>
+  <div id="screen-detail" class="screen">
+    <span class="back-link" onclick="goScreen('screen-home')">← 아카이브로 돌아가기</span>
+
+    <div class="detail-photo-wrapper">
+      <img id="detail-img" src="" alt="폴라로이드 사진">
+      <div id="detail-stickers" class="detail-stickers"></div>
     </div>
+
+    <div class="detail-emotion-box">
+      <div class="detail-emotion-label">그날의 감정</div>
+      <div id="detail-emotion-text"></div>
+    </div>
+
+    <div class="recap-section">
+      <h3 style="margin-top:0;">🌙 밤의 감정 변화</h3>
+      <div id="recap-content"></div>
+    </div>
+  </div>
+
+  <div id="screen-ticket" class="screen">
+    <div id="ticket-content"></div>
   </div>
 
   <script>
@@ -298,20 +419,44 @@
     var current_selected = "사진 A";
     
     var test_time_mode = "real";
+    var current_detail_index = null;
 
     var saved_data = localStorage.getItem("rawr_data");
     if (saved_data != null) {
       archive = JSON.parse(saved_data);
     }
 
+    function getCurrentHour() {
+      if (test_time_mode != "real") {
+        return parseInt(test_time_mode);
+      }
+      var d = new Date();
+      return d.getHours();
+    }
+
+    function isUnlockedTime() {
+      return getCurrentHour() >= 22;
+    }
+
     function changeTestTime() {
       test_time_mode = document.getElementById("time_tester").value;
       renderBoard();
+      if (document.getElementById("screen-detail").style.display == "block" && current_detail_index != null) {
+        openDetail(current_detail_index);
+      }
+      if (document.getElementById("screen-ticket").style.display == "block") {
+        renderTicketScreen();
+      }
+    }
+
+    function persist() {
+      localStorage.setItem("rawr_data", JSON.stringify(archive));
     }
 
     function goScreen(screenId) {
       document.getElementById("screen-home").style.display = "none";
       document.getElementById("screen-add").style.display = "none";
+      document.getElementById("screen-detail").style.display = "none";
       document.getElementById("screen-ticket").style.display = "none";
       
       document.getElementById(screenId).style.display = "block";
@@ -322,7 +467,7 @@
       }
       
       if (screenId == "screen-ticket") {
-        initMap();
+        renderTicketScreen();
       }
     }
 
@@ -380,11 +525,12 @@
       var new_record = {
         photo: selected_photo,
         stickers: current_stickers,
-        emotion: emo_text
+        emotion: emo_text,
+        recap: ""          /* 밤의 감정 변화 기록 (미작성 시 빈 문자열) */
       };
 
       archive.push(new_record);
-      localStorage.setItem("rawr_data", JSON.stringify(archive));
+      persist();
 
       current_stickers = "";
       document.getElementById("stk-a").innerHTML = "";
@@ -404,16 +550,23 @@
       }, 1200); 
     }
 
+    function getImgFile(photoName) {
+      if (photoName == "사진 A") { return "photo_a.jpg"; } 
+      else if (photoName == "사진 B") { return "photo_b.jpg"; } 
+      else if (photoName == "사진 C") { return "photo_c.jpg"; } 
+      else if (photoName == "사진 D") { return "photo_d.jpg"; }
+      return "";
+    }
+
+    function hasRecap(item) {
+      return item.recap != null && item.recap != "";
+    }
+
     function renderBoard() {
       var board = document.getElementById("board");
       var html_string = "";
       
-      var d = new Date();
-      var hour = d.getHours();
-
-      if (test_time_mode != "real") {
-        hour = parseInt(test_time_mode);
-      }
+      var hour = getCurrentHour();
 
       if (archive.length == 0) {
         board.innerHTML = "<p style='color:#666; grid-column: span 2; text-align:center; margin-top: 50px;'>아직 수집된 조각이 없습니다.<br>상단의 '폴라로이드 스캔'을 눌러 첫 기록을 남겨보세요.</p>";
@@ -434,30 +587,119 @@
           html_string = html_string + "<p style='color:#FF41F9; font-size:13px; font-weight:bold; margin-top: 15px;'>🔒 밤 10시 이후 공개</p>";
           html_string = html_string + "</div>";
         } else {
-          var img_file = "";
-          if (item.photo == "사진 A") { img_file = "photo_a.jpg"; } 
-          else if (item.photo == "사진 B") { img_file = "photo_b.jpg"; } 
-          else if (item.photo == "사진 C") { img_file = "photo_c.jpg"; } 
-          else if (item.photo == "사진 D") { img_file = "photo_d.jpg"; }
+          var img_file = getImgFile(item.photo);
 
-          html_string = html_string + "<div class='card' style='transform: rotate(" + my_rot + ");'>";
+          html_string = html_string + "<div class='card' style='transform: rotate(" + my_rot + ");' onclick='openDetail(" + i + ")'>";
           html_string = html_string + "<div class='tape'></div>"; 
-          
+
+          html_string = html_string + "<div class='card-photo-wrapper'>";
           html_string = html_string + "<div class='card-photo'><img src='" + img_file + "'></div>";
           html_string = html_string + "<div class='card-stickers'>" + item.stickers + "</div>";
+          html_string = html_string + "</div>";
+
           html_string = html_string + "<div class='card-emotion'>" + item.emotion + "</div>";
+
+          if (hasRecap(item)) {
+            html_string = html_string + "<div class='card-recap-badge'>🌙 밤의 변화 기록 완료</div>";
+          } else {
+            html_string = html_string + "<div class='card-recap-pending'>회고를 기다리는 중</div>";
+          }
+
           html_string = html_string + "</div>";
         }
       }
       board.innerHTML = html_string;
     }
 
+    /* --- 상세 페이지 --- */
+    function openDetail(index) {
+      current_detail_index = index;
+      var item = archive[index];
+
+      document.getElementById("detail-img").src = getImgFile(item.photo);
+      document.getElementById("detail-stickers").innerHTML = item.stickers;
+      document.getElementById("detail-emotion-text").innerHTML = item.emotion;
+
+      var recapBox = document.getElementById("recap-content");
+
+      if (hasRecap(item)) {
+        /* 이미 회고를 작성한 경우: 저장된 내용 표시 */
+        recapBox.innerHTML =
+          "<div class='recap-saved-box'>" + item.recap + "</div>" +
+          "<p style='font-size:12px; color:#999; margin-top:10px;'>이미 이 기록의 감정 변화를 남겼어요. 소중히 보관할게요.</p>";
+      } else if (!isUnlockedTime()) {
+        /* 밤 10시 이전: 회고 입력 자체를 막고 안내 문구 */
+        recapBox.innerHTML =
+          "<div class='recap-locked-notice'>🔒 '밤의 감정 변화'는 밤 10시 이후에 기록할 수 있어요.<br>그날의 하루를 다 보내고 다시 들어와 주세요.</div>";
+      } else {
+        /* 밤 10시 이후 & 미작성: 입력창 노출 */
+        recapBox.innerHTML =
+          "<textarea id='recap-input' class='recap-textarea' placeholder='하루를 마무리하며, 그때와 지금의 감정은 어떻게 달라졌나요?'></textarea>" +
+          "<button onclick='saveRecap(" + index + ")' style='width:100%; margin-top:15px; padding:16px; font-size:16px;'>🌙 감정 변화 기록 완료</button>" +
+          "<p style='font-size:12px; color:#999; margin-top:10px;'>이 기록을 완료하면 리워드 티켓이 활성화돼요.</p>";
+      }
+
+      goScreen('screen-detail');
+    }
+
+    function saveRecap(index) {
+      var recapInput = document.getElementById("recap-input");
+      var recapText = recapInput.value.trim();
+
+      if (recapText == "") {
+        recapInput.style.border = "2px solid #FF41F9";
+        return;
+      }
+
+      archive[index].recap = recapText;
+      persist();
+
+      openDetail(index); /* 저장 후 화면 갱신 (저장됨 상태로 다시 렌더) */
+    }
+
+    /* --- 리워드 티켓: 회고(밤의 감정 변화)까지 완료한 기록이 있어야 활성화 --- */
+    function hasAnyCompletedRecap() {
+      for (var i = 0; i < archive.length; i++) {
+        if (hasRecap(archive[i])) { return true; }
+      }
+      return false;
+    }
+
     function checkTicketStatus() {
-      if (archive.length > 0) {
+      if (hasAnyCompletedRecap()) {
         document.getElementById("btn-ticket").style.display = "inline-block";
       } else {
         document.getElementById("btn-ticket").style.display = "none";
       }
+    }
+
+    function renderTicketScreen() {
+      var ticketContent = document.getElementById("ticket-content");
+
+      if (!hasAnyCompletedRecap()) {
+        ticketContent.innerHTML =
+          "<div class='ticket-locked-box'>" +
+          "<h2 style='color:#fff;'>🔒 아직 잠겨있어요</h2>" +
+          "<p style='font-size:14px;'>폴라로이드 상세 페이지에서 '밤의 감정 변화'를 한 번 이상 기록하면<br>리워드 티켓이 열려요.</p>" +
+          "</div>";
+        return;
+      }
+
+      ticketContent.innerHTML =
+        "<div class='ticket-box'>" +
+        "<h1 style='font-size: 48px; margin: 10px 0;'>10% OFF</h1>" +
+        "<p style='font-size: 16px;'>다음 방문 시 이 화면을 제시해주세요.</p>" +
+        "<div style='background:white; color:black; padding:15px; margin-top:20px; font-weight:bold; font-size: 18px; border-radius: 5px;'>" +
+        "바코드: RAWR-0824" +
+        "</div>" +
+        "<div style='margin-top: 40px; border-top: 2px dashed rgba(255,255,255,0.5); padding-top: 30px;'>" +
+        "<h2>📍 다음 rawr 큐레이션 안내</h2>" +
+        "<p style='font-size: 14px; opacity: 0.9;'>변화 기록을 남긴 분들을 위해 준비한 비밀 공간입니다.</p>" +
+        "<div id='map'></div>" +
+        "</div>" +
+        "</div>";
+
+      initMap();
     }
 
     goScreen('screen-home');
