@@ -8,10 +8,28 @@
   /* 기본 배경 및 폰트 */
   body { 
     font-family: 'Helvetica Neue', Arial, sans-serif; 
-    background-color: #1a1a1a; /* 갤러리가 돋보이도록 배경을 조금 더 어둡게 */
+    background-color: #1a1a1a; 
     color: white;
     margin: 0; padding: 0;
   }
+  
+  /* 🛠 테스트 도구 영역 디자인 */
+  .test-bar {
+    background-color: #333;
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    border-bottom: 1px dashed #FF41F9;
+  }
+  .test-bar select {
+    padding: 5px;
+    font-size: 13px;
+    background-color: #222;
+    color: white;
+    border: 1px solid #FF41F9;
+    border-radius: 4px;
+  }
+
   .header {
     background-color: #111;
     padding: 20px;
@@ -31,7 +49,7 @@
     border: none;
     padding: 10px 18px;
     margin: 5px;
-    border-radius: 30px; /* 약간 더 둥글게 다듬음 */
+    border-radius: 30px; 
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.2s;
@@ -52,16 +70,15 @@
   
   /* --- 📸 실물 폴라로이드 디자인 핵심 영역 --- */
   .card {
-    background-color: #fafafa; /* 완전한 흰색보다 살짝 따뜻한 종이 질감 색상 */
+    background-color: #fafafa; 
     color: #111;
-    /* 폴라로이드 비율: 위/양옆은 좁고 아래는 넓게 */
     padding: 12px 12px 45px 12px; 
-    border-radius: 2px; /* 아주 미세한 둥근 모서리 */
-    box-shadow: 3px 6px 18px rgba(0,0,0,0.25); /* 입체감 부여 */
+    border-radius: 2px; 
+    box-shadow: 3px 6px 18px rgba(0,0,0,0.25); 
     
-    /* A1강, A2강: Z-index 제어 및 호버 트랜지션 */
     position: relative; 
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0.3s; 
+    /* 🚨 100% 강의안 기반 안전한 transition 속성 (ease)으로 수정 완료 */
+    transition: transform 0.3s ease, z-index 0.3s ease; 
     text-align: center;
   }
   
@@ -71,15 +88,14 @@
     box-shadow: 5px 12px 25px rgba(0,0,0,0.4);
   }
 
-  /* A1강: 마스킹 테이프 디테일 (position: absolute) */
   .tape {
     position: absolute;
     top: -10px;
     left: 50%;
-    margin-left: -35px; /* 중앙 정렬 */
+    margin-left: -35px; 
     width: 70px;
     height: 22px;
-    background-color: rgba(255, 255, 200, 0.5); /* 반투명 노란 테이프 */
+    background-color: rgba(255, 255, 200, 0.5); 
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     transform: rotate(-3deg);
     z-index: 5;
@@ -88,18 +104,17 @@
   .card-photo {
     background-color: #333;
     width: 100%;
-    height: 180px; /* 정방형에 가깝게 높이 확장 */
+    height: 180px; 
     margin-bottom: 12px;
     text-align: center;
     color: #999;
     line-height: 180px;
     font-size: 24px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* 사진 안쪽으로 은은한 그림자 */
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); 
   }
 
-  /* 하단 감정 및 스티커 영역 */
   .card-emotion {
-    font-family: 'Georgia', serif; /* 아날로그 감성을 위한 세리프 폰트 */
+    font-family: 'Georgia', serif; 
     font-size: 16px;
     font-weight: bold;
     color: #222;
@@ -108,11 +123,9 @@
   .card-stickers {
     font-size: 22px; 
     letter-spacing: 6px;
-    margin-top: -5px; /* 사진과 텍스트 사이에 자연스럽게 끼워지도록 */
+    margin-top: -5px; 
   }
-  /* ------------------------------------- */
 
-  /* 사진 썸네일 색상 */
   .thumb-a { background-color: #5c4332; }
   .thumb-b { background-color: #5a7d43; }
   .thumb-c { background-color: #221530; }
@@ -145,7 +158,6 @@
   }
   .pick-label { font-size: 14px; color: #ddd; }
   
-  /* 잠긴 카드 디자인 */
   .card-locked {
     background-color: #333;
     color: #888;
@@ -188,6 +200,16 @@
 </style>
 </head>
 <body>
+
+  <div class="test-bar">
+    <span style="color: #FF41F9; font-weight: bold;">🛠 발표용 테스트 도구 : </span>
+    현재 시스템 시간 강제 설정
+    <select id="time_tester" onchange="changeTestTime()">
+      <option value="real">실제 내 컴퓨터 시간 사용</option>
+      <option value="14">낮 2시 (비공개 잠금 모드)</option>
+      <option value="22">밤 10시 (원본 공개 모드)</option>
+    </select>
+  </div>
 
   <div class="header">
     <h2>RAWR. Archive</h2>
@@ -267,10 +289,21 @@
     var archive = []; 
     var current_stickers = ""; 
     var current_selected = "사진 A";
+    
+    // 🛠 시간을 강제로 조작하기 위한 변수 추가
+    var test_time_mode = "real";
 
     var saved_data = localStorage.getItem("rawr_data");
     if (saved_data != null) {
       archive = JSON.parse(saved_data);
+    }
+
+    // 🛠 드롭다운을 바꿀 때마다 실행되는 함수
+    function changeTestTime() {
+      // select 박스에서 선택한 값을 가져와 변수에 저장 (강의안 8강 활용)
+      test_time_mode = document.getElementById("time_tester").value;
+      // 화면에 즉시 반영되도록 갤러리 다시 그리기
+      renderBoard();
     }
 
     function goScreen(screenId) {
@@ -375,6 +408,11 @@
       var d = new Date();
       var hour = d.getHours();
 
+      // 🛠 테스트 도구에서 시간을 변경했다면 그 값을 적용
+      if (test_time_mode != "real") {
+        hour = parseInt(test_time_mode);
+      }
+
       if (archive.length == 0) {
         board.innerHTML = "<p style='color:#666; grid-column: span 2; text-align:center; margin-top: 50px;'>아직 수집된 조각이 없습니다.<br>상단의 '폴라로이드 스캔'을 눌러 첫 기록을 남겨보세요.</p>";
         return;
@@ -388,7 +426,7 @@
 
         if (hour < 22) {
           html_string = html_string + "<div class='card-locked' style='transform: rotate(" + my_rot + ");'>";
-          html_string = html_string + "<div class='tape'></div>"; // 잠긴 카드에도 테이프 적용
+          html_string = html_string + "<div class='tape'></div>";
           html_string = html_string + "<div class='card-photo'>비공개</div>";
           html_string = html_string + "<p style='color:#555;'>?????</p>";
           html_string = html_string + "<p style='color:#FF41F9; font-size:13px; font-weight:bold; margin-top: 15px;'>🔒 밤 10시 이후 공개</p>";
@@ -401,7 +439,6 @@
           else if (item.photo == "사진 D") { photo_color = "#5c3030"; }
 
           html_string = html_string + "<div class='card' style='transform: rotate(" + my_rot + ");'>";
-          // 마스킹 테이프 UI 동적 추가
           html_string = html_string + "<div class='tape'></div>"; 
           html_string = html_string + "<div class='card-photo' style='background-color:" + photo_color + ";'>" + item.photo + "</div>";
           html_string = html_string + "<div class='card-stickers'>" + item.stickers + "</div>";
