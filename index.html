@@ -343,6 +343,16 @@
     <button id="btn-ticket" onclick="goScreen('screen-ticket')" style="display:none; background-color: white; color: #FF41F9;">🎫 리워드 티켓</button>
   </div>
 
+  <div id="screen-landing" class="screen" style="text-align: center; margin-top: 80px;">
+    <h1 style="font-size: 54px; color: #FF41F9; letter-spacing: 3px; margin-bottom: 10px;">RAWR;</h1>
+    <h2 style="font-size: 24px; font-weight: 400; margin-top: 0; margin-bottom: 40px; letter-spacing: 5px;">ARCHIVE</h2>
+    <p style="color: #bbb; line-height: 1.6; margin-bottom: 60px; font-size: 16px;">
+      완벽하게 기획된 스펙터클에서 벗어난<br>
+      오직 나만의 날것의 감정 보관소
+    </p>
+    <button onclick="goScreen('screen-home')" style="font-size: 20px; padding: 15px 50px; border-radius: 50px;">START</button>
+  </div>
+
   <div id="screen-home" class="screen">
     <h3 style="text-align:center; margin-bottom: 5px;">나만의 감정 기록장</h3>
     <p style="text-align:center; font-size:14px; color:#999; margin-bottom: 30px;">카드를 클릭하면 상세 기록과 '밤의 감정 변화'를 남길 수 있어요.</p>
@@ -454,13 +464,26 @@
       localStorage.setItem("rawr_data", JSON.stringify(archive));
     }
 
+    // ✅ 수정 부분 2: 화면 전환 함수에 랜딩 화면 숨김 및 헤더/네비바 제어 로직 추가
     function goScreen(screenId) {
+      document.getElementById("screen-landing").style.display = "none";
       document.getElementById("screen-home").style.display = "none";
       document.getElementById("screen-add").style.display = "none";
       document.getElementById("screen-detail").style.display = "none";
       document.getElementById("screen-ticket").style.display = "none";
       
       document.getElementById(screenId).style.display = "block";
+
+      // 랜딩 화면일 때는 상단 헤더와 네비게이션 메뉴를 숨깁니다.
+      if (screenId === 'screen-landing') {
+        document.querySelector('.header').style.display = 'none';
+        document.querySelector('.nav-bar').style.display = 'none';
+        document.querySelector('.test-bar').style.display = 'none';
+      } else {
+        document.querySelector('.header').style.display = 'block';
+        document.querySelector('.nav-bar').style.display = 'block';
+        document.querySelector('.test-bar').style.display = 'block';
+      }
 
       if (screenId == "screen-home") {
         renderBoard();
@@ -655,7 +678,6 @@
       archive[index].recap = recapText;
       persist();
 
-      // 기존 openDetail(index) 대신 아래 코드로 변경
       goScreen('screen-ticket'); 
     }
 
@@ -704,7 +726,8 @@
       initMap();
     }
 
-    goScreen('screen-home');
+    // ✅ 수정 부분 3: 초기 실행 화면을 screen-home에서 screen-landing으로 변경
+    goScreen('screen-landing');
   </script>
 </body>
 </html>
