@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <title>RAWR Archive</title>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDJOQHqAPsXB0IcQH4KClmBtmIhP94DYt8"></script>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
 <style>
-  /* 기본 배경 및 폰트 */
+  /* 기본 배경 및 폰트: 전체 폰트를 Pretendard로 변경 */
   body { 
-    font-family: 'Helvetica Neue', Arial, sans-serif; 
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; 
     background-color: #1a1a1a; 
     color: white;
     margin: 0; padding: 0;
@@ -28,6 +30,7 @@
     color: white;
     border: 1px solid #FF41F9;
     border-radius: 4px;
+    font-family: 'Pretendard Variable', sans-serif;
   }
 
   .header {
@@ -35,7 +38,7 @@
     padding: 20px;
     text-align: center;
     border-bottom: 1px solid #333;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
   }
   .nav-bar {
     display: block;
@@ -50,8 +53,9 @@
     padding: 10px 18px;
     margin: 5px;
     border-radius: 30px; 
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
+    font-family: 'Pretendard Variable', sans-serif;
     transition: background-color 0.2s;
   }
   button:hover { background-color: #d420ce; }
@@ -60,7 +64,6 @@
   .screen { display: none; padding: 30px; max-width: 800px; margin: 0 auto; }
   #screen-home { display: block; }
   
-  /* 05강: Grid 레이아웃 */
   .grid-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -77,7 +80,6 @@
     box-shadow: 3px 6px 18px rgba(0,0,0,0.25); 
     
     position: relative; 
-    /* 🚨 100% 강의안 기반 안전한 transition 속성 (ease)으로 수정 완료 */
     transition: transform 0.3s ease, z-index 0.3s ease; 
     text-align: center;
   }
@@ -89,7 +91,7 @@
   }
 
   .tape {
-    position: absolute;
+    position: absolute; 
     top: -10px;
     left: 50%;
     margin-left: -35px; 
@@ -102,21 +104,25 @@
   }
 
   .card-photo {
-    background-color: #333;
+    background-color: #eee;
     width: 100%;
     height: 180px; 
     margin-bottom: 12px;
     text-align: center;
-    color: #999;
-    line-height: 180px;
-    font-size: 24px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); 
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.2); 
+    overflow: hidden; 
+  }
+
+  /* 실제 이미지가 꽉 차게 들어가는 CSS */
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .card-emotion {
-    font-family: 'Georgia', serif; 
     font-size: 16px;
-    font-weight: bold;
+    font-weight: 600;
     color: #222;
     margin-top: 5px;
   }
@@ -125,11 +131,6 @@
     letter-spacing: 6px;
     margin-top: -5px; 
   }
-
-  .thumb-a { background-color: #5c4332; }
-  .thumb-b { background-color: #5a7d43; }
-  .thumb-c { background-color: #221530; }
-  .thumb-d { background-color: #5c3030; }
 
   .pick-grid {
     display: grid;
@@ -149,14 +150,20 @@
   .pick-box-selected { border: 3px solid #FF41F9; }
   
   .pick-photo {
+    background-color: #eee;
     width: 100%;
     height: 110px;
-    line-height: 110px;
-    font-size: 36px;
     border-radius: 4px;
     margin-bottom: 8px;
+    overflow: hidden;
   }
-  .pick-label { font-size: 14px; color: #ddd; }
+  .pick-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pick-label { font-size: 14px; color: #ddd; margin-top: 5px; }
   
   .card-locked {
     background-color: #333;
@@ -166,7 +173,7 @@
     text-align: center;
     box-shadow: 2px 4px 10px rgba(0,0,0,0.2);
   }
-  .card-locked .card-photo { background-color: #222; color: #666; box-shadow: none; }
+  .card-locked .card-photo { background-color: #222; box-shadow: none; line-height: 180px; }
 
   .sticker-btn { background-color: #444; font-size: 22px; padding: 6px 12px; border-radius: 8px; }
 
@@ -178,7 +185,7 @@
     padding: 15px;
     margin-top: 20px;
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
     border-radius: 8px;
   }
   
@@ -212,7 +219,7 @@
   </div>
 
   <div class="header">
-    <h2>RAWR. Archive</h2>
+    <h2 style="margin: 0;">RAWR. Archive</h2>
   </div>
 
   <div class="nav-bar">
@@ -223,7 +230,7 @@
 
   <div id="screen-home" class="screen">
     <h3 style="text-align:center; margin-bottom: 5px;">나만의 감정 기록장</h3>
-    <p style="text-align:center; font-size:13px; color:#999; margin-bottom: 30px;">사진 위에 마우스를 올려 아날로그 질감을 느껴보세요.</p>
+    <p style="text-align:center; font-size:14px; color:#999; margin-bottom: 30px;">사진 위에 마우스를 올려 아날로그 질감을 느껴보세요.</p>
     <div id="board" class="grid-container">
       </div>
   </div>
@@ -232,20 +239,20 @@
     <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px;">1. 스캔할 폴라로이드 선택</h3>
     <div class="pick-grid">
       <div id="pick-a" class="pick-box-selected" onclick="changePreview('사진 A')">
-        <div class="pick-photo thumb-a">☕<span class="pick-stickers" id="stk-a"></span></div>
-        <div class="pick-label">사진 A (카페에서)</div>
+        <div class="pick-photo"><img src="photo_a.jpg"></div>
+        <div class="pick-label">사진 A (카페에서) <span id="stk-a"></span></div>
       </div>
       <div id="pick-b" class="pick-box" onclick="changePreview('사진 B')">
-        <div class="pick-photo thumb-b">🌳<span class="pick-stickers" id="stk-b"></span></div>
-        <div class="pick-label">사진 B (산책 중에)</div>
+        <div class="pick-photo"><img src="photo_b.jpg"></div>
+        <div class="pick-label">사진 B (산책 중에) <span id="stk-b"></span></div>
       </div>
       <div id="pick-c" class="pick-box" onclick="changePreview('사진 C')">
-        <div class="pick-photo thumb-c">🌙<span class="pick-stickers" id="stk-c"></span></div>
-        <div class="pick-label">사진 C (혼자만의 시간)</div>
+        <div class="pick-photo"><img src="photo_c.jpg"></div>
+        <div class="pick-label">사진 C (혼자만의 시간) <span id="stk-c"></span></div>
       </div>
       <div id="pick-d" class="pick-box" onclick="changePreview('사진 D')">
-        <div class="pick-photo thumb-d">🌧️<span class="pick-stickers" id="stk-d"></span></div>
-        <div class="pick-label">사진 D (비 오는 날)</div>
+        <div class="pick-photo"><img src="photo_d.jpg"></div>
+        <div class="pick-label">사진 D (비 오는 날) <span id="stk-d"></span></div>
       </div>
     </div>
 
@@ -262,7 +269,7 @@
     <button class="sticker-btn" onclick="addSticker('💧')">💧</button>
 
     <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 40px;">3. 감정 기록하기</h3>
-    <input type="text" id="emotion_text" style="width: 95%; padding: 15px; font-size: 16px; border-radius: 5px; border: none; background-color: #eee;" placeholder="오늘의 날것의 감정을 적어주세요.">
+    <input type="text" id="emotion_text" style="width: 95%; padding: 15px; font-size: 16px; border-radius: 5px; border: none; background-color: #eee; font-family: 'Pretendard Variable', sans-serif;" placeholder="오늘의 날것의 감정을 적어주세요.">
 
     <button onclick="saveRecord()" style="width: 100%; margin-top: 35px; padding: 18px; font-size: 18px;">💾 갤러리에 아카이빙하기</button>
 
@@ -279,7 +286,7 @@
       
       <div style="margin-top: 40px; border-top: 2px dashed rgba(255,255,255,0.5); padding-top: 30px;">
         <h2>📍 다음 rawr 큐레이션 안내</h2>
-        <p style="font-size: 14px; opacity: 0.9;">이 티켓은 아래 비밀 공간에서 사용 가능합니다.</p>
+        <p style="font-size: 14px; opacity: 0.9;">변화 기록을 남긴 분들을 위해 준비한 비밀 공간입니다.</p>
         <div id="map"></div>
       </div>
     </div>
@@ -290,7 +297,6 @@
     var current_stickers = ""; 
     var current_selected = "사진 A";
     
-    // 🛠 시간을 강제로 조작하기 위한 변수 추가
     var test_time_mode = "real";
 
     var saved_data = localStorage.getItem("rawr_data");
@@ -298,11 +304,8 @@
       archive = JSON.parse(saved_data);
     }
 
-    // 🛠 드롭다운을 바꿀 때마다 실행되는 함수
     function changeTestTime() {
-      // select 박스에서 선택한 값을 가져와 변수에 저장 (강의안 8강 활용)
       test_time_mode = document.getElementById("time_tester").value;
-      // 화면에 즉시 반영되도록 갤러리 다시 그리기
       renderBoard();
     }
 
@@ -408,7 +411,6 @@
       var d = new Date();
       var hour = d.getHours();
 
-      // 🛠 테스트 도구에서 시간을 변경했다면 그 값을 적용
       if (test_time_mode != "real") {
         hour = parseInt(test_time_mode);
       }
@@ -432,15 +434,16 @@
           html_string = html_string + "<p style='color:#FF41F9; font-size:13px; font-weight:bold; margin-top: 15px;'>🔒 밤 10시 이후 공개</p>";
           html_string = html_string + "</div>";
         } else {
-          var photo_color = "#333";
-          if (item.photo == "사진 A") { photo_color = "#5c4332"; } 
-          else if (item.photo == "사진 B") { photo_color = "#5a7d43"; } 
-          else if (item.photo == "사진 C") { photo_color = "#221530"; } 
-          else if (item.photo == "사진 D") { photo_color = "#5c3030"; }
+          var img_file = "";
+          if (item.photo == "사진 A") { img_file = "photo_a.jpg"; } 
+          else if (item.photo == "사진 B") { img_file = "photo_b.jpg"; } 
+          else if (item.photo == "사진 C") { img_file = "photo_c.jpg"; } 
+          else if (item.photo == "사진 D") { img_file = "photo_d.jpg"; }
 
           html_string = html_string + "<div class='card' style='transform: rotate(" + my_rot + ");'>";
           html_string = html_string + "<div class='tape'></div>"; 
-          html_string = html_string + "<div class='card-photo' style='background-color:" + photo_color + ";'>" + item.photo + "</div>";
+          
+          html_string = html_string + "<div class='card-photo'><img src='" + img_file + "'></div>";
           html_string = html_string + "<div class='card-stickers'>" + item.stickers + "</div>";
           html_string = html_string + "<div class='card-emotion'>" + item.emotion + "</div>";
           html_string = html_string + "</div>";
