@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>RAWR Archive</title>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDJOQHqAPsXB0IcQH4KClmBtmIhP94DYt8"></script>
+<style>
+  /* 기본 배경 및 폰트 */
+  body { 
+    font-family: 'Helvetica Neue', Arial, sans-serif; 
+    background-color: #1a1a1a; /* 갤러리가 돋보이도록 배경을 조금 더 어둡게 */
+    color: white;
+    margin: 0; padding: 0;
+  }
+  .header {
+    background-color: #111;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+    letter-spacing: 2px;
+  }
+  .nav-bar {
+    display: block;
+    text-align: center;
+    padding: 15px;
+    background-color: #222;
+  }
+  button {
+    background-color: #FF41F9;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    margin: 5px;
+    border-radius: 30px; /* 약간 더 둥글게 다듬음 */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover { background-color: #d420ce; }
+  
+  /* 화면 전환용 */
+  .screen { display: none; padding: 30px; max-width: 800px; margin: 0 auto; }
+  #screen-home { display: block; }
+  
+  /* 05강: Grid 레이아웃 */
+  .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    padding: 30px 10px;
+  }
+  
+  /* --- 📸 실물 폴라로이드 디자인 핵심 영역 --- */
+  .card {
+    background-color: #fafafa; /* 완전한 흰색보다 살짝 따뜻한 종이 질감 색상 */
+    color: #111;
+    /* 폴라로이드 비율: 위/양옆은 좁고 아래는 넓게 */
+    padding: 12px 12px 45px 12px; 
+    border-radius: 2px; /* 아주 미세한 둥근 모서리 */
+    box-shadow: 3px 6px 18px rgba(0,0,0,0.25); /* 입체감 부여 */
+    
+    /* A1강, A2강: Z-index 제어 및 호버 트랜지션 */
+    position: relative; 
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), z-index 0.3s; 
+    text-align: center;
+  }
+  
+  .card:hover {
+    transform: scale(1.08) rotate(0deg) !important;
+    z-index: 10;
+    box-shadow: 5px 12px 25px rgba(0,0,0,0.4);
+  }
+
+  /* A1강: 마스킹 테이프 디테일 (position: absolute) */
+  .tape {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    margin-left: -35px; /* 중앙 정렬 */
+    width: 70px;
+    height: 22px;
+    background-color: rgba(255, 255, 200, 0.5); /* 반투명 노란 테이프 */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transform: rotate(-3deg);
+    z-index: 5;
+  }
+
+  .card-photo {
+    background-color: #333;
+    width: 100%;
+    height: 180px; /* 정방형에 가깝게 높이 확장 */
+    margin-bottom: 12px;
+    text-align: center;
+    color: #999;
+    line-height: 180px;
+    font-size: 24px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* 사진 안쪽으로 은은한 그림자 */
+  }
+
+  /* 하단 감정 및 스티커 영역 */
+  .card-emotion {
+    font-family: 'Georgia', serif; /* 아날로그 감성을 위한 세리프 폰트 */
+    font-size: 16px;
+    font-weight: bold;
+    color: #222;
+    margin-top: 5px;
+  }
+  .card-stickers {
+    font-size: 22px; 
+    letter-spacing: 6px;
+    margin-top: -5px; /* 사진과 텍스트 사이에 자연스럽게 끼워지도록 */
+  }
+  /* ------------------------------------- */
+
+  /* 사진 썸네일 색상 */
+  .thumb-a { background-color: #5c4332; }
+  .thumb-b { background-color: #5a7d43; }
+  .thumb-c { background-color: #221530; }
+  .thumb-d { background-color: #5c3030; }
+
+  .pick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .pick-box, .pick-box-selected {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: border 0.2s;
+  }
+  .pick-box { border: 3px solid #2a2a2a; }
+  .pick-box-selected { border: 3px solid #FF41F9; }
+  
+  .pick-photo {
+    width: 100%;
+    height: 110px;
+    line-height: 110px;
+    font-size: 36px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+  .pick-label { font-size: 14px; color: #ddd; }
+  
+  /* 잠긴 카드 디자인 */
+  .card-locked {
+    background-color: #333;
+    color: #888;
+    padding: 12px 12px 45px 12px; 
+    border-radius: 2px;
+    text-align: center;
+    box-shadow: 2px 4px 10px rgba(0,0,0,0.2);
+  }
+  .card-locked .card-photo { background-color: #222; color: #666; box-shadow: none; }
+
+  .sticker-btn { background-color: #444; font-size: 22px; padding: 6px 12px; border-radius: 8px; }
+
+  #msg-box {
+    display: none;
+    background-color: rgba(255, 65, 249, 0.1);
+    border: 1px solid #FF41F9;
+    color: #FF41F9;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 8px;
+  }
+  
+  .ticket-box {
+    background-color: #FF41F9;
+    padding: 40px 30px; 
+    border-radius: 20px; 
+    text-align: center;
+    margin-top: 20px;
+    box-shadow: 0 10px 30px rgba(255, 65, 249, 0.3);
+  }
+  #map {
+    width: 100%;
+    height: 280px;
+    margin-top: 25px;
+    border-radius: 12px;
+    border: 3px solid white;
+  }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>RAWR. Archive</h2>
+  </div>
+
+  <div class="nav-bar">
+    <button onclick="goScreen('screen-home')">홈 (아카이브)</button>
+    <button onclick="goScreen('screen-add')">폴라로이드 스캔</button>
+    <button id="btn-ticket" onclick="goScreen('screen-ticket')" style="display:none; background-color: white; color: #FF41F9;">🎫 리워드 티켓</button>
+  </div>
+
+  <div id="screen-home" class="screen">
+    <h3 style="text-align:center; margin-bottom: 5px;">나만의 감정 기록장</h3>
+    <p style="text-align:center; font-size:13px; color:#999; margin-bottom: 30px;">사진 위에 마우스를 올려 아날로그 질감을 느껴보세요.</p>
+    <div id="board" class="grid-container">
+      </div>
+  </div>
+
+  <div id="screen-add" class="screen">
+    <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px;">1. 스캔할 폴라로이드 선택</h3>
+    <div class="pick-grid">
+      <div id="pick-a" class="pick-box-selected" onclick="changePreview('사진 A')">
+        <div class="pick-photo thumb-a">☕<span class="pick-stickers" id="stk-a"></span></div>
+        <div class="pick-label">사진 A (카페에서)</div>
+      </div>
+      <div id="pick-b" class="pick-box" onclick="changePreview('사진 B')">
+        <div class="pick-photo thumb-b">🌳<span class="pick-stickers" id="stk-b"></span></div>
+        <div class="pick-label">사진 B (산책 중에)</div>
+      </div>
+      <div id="pick-c" class="pick-box" onclick="changePreview('사진 C')">
+        <div class="pick-photo thumb-c">🌙<span class="pick-stickers" id="stk-c"></span></div>
+        <div class="pick-label">사진 C (혼자만의 시간)</div>
+      </div>
+      <div id="pick-d" class="pick-box" onclick="changePreview('사진 D')">
+        <div class="pick-photo thumb-d">🌧️<span class="pick-stickers" id="stk-d"></span></div>
+        <div class="pick-label">사진 D (비 오는 날)</div>
+      </div>
+    </div>
+
+    <input type="radio" name="photo_sel" value="사진 A" checked style="display:none;">
+    <input type="radio" name="photo_sel" value="사진 B" style="display:none;">
+    <input type="radio" name="photo_sel" value="사진 C" style="display:none;">
+    <input type="radio" name="photo_sel" value="사진 D" style="display:none;">
+
+    <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 40px;">2. 이모지 스티커 붙이기</h3>
+    <button class="sticker-btn" onclick="addSticker('✨')">✨</button>
+    <button class="sticker-btn" onclick="addSticker('❤️')">❤️</button>
+    <button class="sticker-btn" onclick="addSticker('🍀')">🍀</button>
+    <button class="sticker-btn" onclick="addSticker('🌙')">🌙</button>
+    <button class="sticker-btn" onclick="addSticker('💧')">💧</button>
+
+    <h3 style="border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 40px;">3. 감정 기록하기</h3>
+    <input type="text" id="emotion_text" style="width: 95%; padding: 15px; font-size: 16px; border-radius: 5px; border: none; background-color: #eee;" placeholder="오늘의 날것의 감정을 적어주세요.">
+
+    <button onclick="saveRecord()" style="width: 100%; margin-top: 35px; padding: 18px; font-size: 18px;">💾 갤러리에 아카이빙하기</button>
+
+    <div id="msg-box"></div>
+  </div>
+
+  <div id="screen-ticket" class="screen">
+    <div class="ticket-box">
+      <h1 style="font-size: 48px; margin: 10px 0;">10% OFF</h1>
+      <p style="font-size: 16px;">다음 방문 시 이 화면을 제시해주세요.</p>
+      <div style="background:white; color:black; padding:15px; margin-top:20px; font-weight:bold; font-size: 18px; border-radius: 5px;">
+        바코드: RAWR-0824
+      </div>
+      
+      <div style="margin-top: 40px; border-top: 2px dashed rgba(255,255,255,0.5); padding-top: 30px;">
+        <h2>📍 다음 rawr 큐레이션 안내</h2>
+        <p style="font-size: 14px; opacity: 0.9;">이 티켓은 아래 비밀 공간에서 사용 가능합니다.</p>
+        <div id="map"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var archive = []; 
+    var current_stickers = ""; 
+    var current_selected = "사진 A";
+
+    var saved_data = localStorage.getItem("rawr_data");
+    if (saved_data != null) {
+      archive = JSON.parse(saved_data);
+    }
+
+    function goScreen(screenId) {
+      document.getElementById("screen-home").style.display = "none";
+      document.getElementById("screen-add").style.display = "none";
+      document.getElementById("screen-ticket").style.display = "none";
+      
+      document.getElementById(screenId).style.display = "block";
+
+      if (screenId == "screen-home") {
+        renderBoard();
+        checkTicketStatus();
+      }
+      
+      if (screenId == "screen-ticket") {
+        initMap();
+      }
+    }
+
+    function initMap() {
+      var next_location = {lat: 37.557216, lng: 126.987319}; 
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: next_location
+      });
+      var marker = new google.maps.Marker({
+        position: next_location,
+        label: "rawr",
+        map: map
+      });
+    }
+
+    function addSticker(emoji) {
+      current_stickers = current_stickers + emoji;
+      if (current_selected == "사진 A") { document.getElementById("stk-a").innerHTML = current_stickers; } 
+      else if (current_selected == "사진 B") { document.getElementById("stk-b").innerHTML = current_stickers; } 
+      else if (current_selected == "사진 C") { document.getElementById("stk-c").innerHTML = current_stickers; } 
+      else if (current_selected == "사진 D") { document.getElementById("stk-d").innerHTML = current_stickers; }
+    }
+
+    function changePreview(photoValue) {
+      document.getElementById("pick-a").className = "pick-box";
+      document.getElementById("pick-b").className = "pick-box";
+      document.getElementById("pick-c").className = "pick-box";
+      document.getElementById("pick-d").className = "pick-box";
+
+      if (photoValue == "사진 A") { document.getElementById("pick-a").className = "pick-box-selected"; } 
+      else if (photoValue == "사진 B") { document.getElementById("pick-b").className = "pick-box-selected"; } 
+      else if (photoValue == "사진 C") { document.getElementById("pick-c").className = "pick-box-selected"; } 
+      else if (photoValue == "사진 D") { document.getElementById("pick-d").className = "pick-box-selected"; }
+
+      var radios = document.getElementsByName("photo_sel");
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].value == photoValue) {
+          radios[i].checked = true;
+        }
+      }
+      current_selected = photoValue;
+      current_stickers = "";
+    }
+
+    function saveRecord() {
+      var selected_photo = "사진";
+      var radios = document.getElementsByName("photo_sel");
+      for (var i = 0; i < radios.length; i++) {
+        if (radios[i].checked == true) { selected_photo = radios[i].value; }
+      }
+
+      var emo_text = document.getElementById("emotion_text").value;
+
+      var new_record = {
+        photo: selected_photo,
+        stickers: current_stickers,
+        emotion: emo_text
+      };
+
+      archive.push(new_record);
+      localStorage.setItem("rawr_data", JSON.stringify(archive));
+
+      current_stickers = "";
+      document.getElementById("stk-a").innerHTML = "";
+      document.getElementById("stk-b").innerHTML = "";
+      document.getElementById("stk-c").innerHTML = "";
+      document.getElementById("stk-d").innerHTML = "";
+      document.getElementById("emotion_text").value = "";
+      changePreview("사진 A");
+      
+      var msgBox = document.getElementById("msg-box");
+      msgBox.innerHTML = "성공적으로 아카이빙 되었습니다!";
+      msgBox.style.display = "block";
+
+      setTimeout(function() {
+        msgBox.style.display = "none";
+        goScreen('screen-home');
+      }, 1200); 
+    }
+
+    function renderBoard() {
+      var board = document.getElementById("board");
+      var html_string = "";
+      
+      var d = new Date();
+      var hour = d.getHours();
+
+      if (archive.length == 0) {
+        board.innerHTML = "<p style='color:#666; grid-column: span 2; text-align:center; margin-top: 50px;'>아직 수집된 조각이 없습니다.<br>상단의 '폴라로이드 스캔'을 눌러 첫 기록을 남겨보세요.</p>";
+        return;
+      }
+
+      var rotations = ["-5deg", "4deg", "-3deg", "6deg"];
+
+      for (var i = 0; i < archive.length; i++) {
+        var item = archive[i];
+        var my_rot = rotations[i % 4];
+
+        if (hour < 22) {
+          html_string = html_string + "<div class='card-locked' style='transform: rotate(" + my_rot + ");'>";
+          html_string = html_string + "<div class='tape'></div>"; // 잠긴 카드에도 테이프 적용
+          html_string = html_string + "<div class='card-photo'>비공개</div>";
+          html_string = html_string + "<p style='color:#555;'>?????</p>";
+          html_string = html_string + "<p style='color:#FF41F9; font-size:13px; font-weight:bold; margin-top: 15px;'>🔒 밤 10시 이후 공개</p>";
+          html_string = html_string + "</div>";
+        } else {
+          var photo_color = "#333";
+          if (item.photo == "사진 A") { photo_color = "#5c4332"; } 
+          else if (item.photo == "사진 B") { photo_color = "#5a7d43"; } 
+          else if (item.photo == "사진 C") { photo_color = "#221530"; } 
+          else if (item.photo == "사진 D") { photo_color = "#5c3030"; }
+
+          html_string = html_string + "<div class='card' style='transform: rotate(" + my_rot + ");'>";
+          // 마스킹 테이프 UI 동적 추가
+          html_string = html_string + "<div class='tape'></div>"; 
+          html_string = html_string + "<div class='card-photo' style='background-color:" + photo_color + ";'>" + item.photo + "</div>";
+          html_string = html_string + "<div class='card-stickers'>" + item.stickers + "</div>";
+          html_string = html_string + "<div class='card-emotion'>" + item.emotion + "</div>";
+          html_string = html_string + "</div>";
+        }
+      }
+      board.innerHTML = html_string;
+    }
+
+    function checkTicketStatus() {
+      if (archive.length > 0) {
+        document.getElementById("btn-ticket").style.display = "inline-block";
+      } else {
+        document.getElementById("btn-ticket").style.display = "none";
+      }
+    }
+
+    goScreen('screen-home');
+  </script>
+</body>
+</html>
